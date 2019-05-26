@@ -3,6 +3,8 @@
 #ifndef SLEEPY_ONE_THREAD
 #include <thread>
 #endif
+#include <mutex>
+#include <condition_variable>
 #include <memory>
 #include <unordered_map>
 #include <functional>
@@ -334,6 +336,8 @@ namespace SleepyDiscord {
 		virtual time_t getEpochTimeMillisecond() const;
 		
 	private:
+		std::mutex ready_mtx;
+		std::condition_variable ready_cv;
 		int heartbeatInterval = 0;
 		int64_t lastHeartbeat = 0;
 		int lastSReceived = 0;

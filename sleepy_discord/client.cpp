@@ -175,7 +175,10 @@ namespace SleepyDiscord {
 	}
 
 	void BaseDiscordClient::waitTilReady() {
-		while (!ready) sleep(1000);
+		std::unique_lock<std::mutex> lk(ready_mtx);
+		ready_cv.wait(lk, [&](){
+			return ready;
+		});
 	}
 
 	void BaseDiscordClient::setShardID(int _shardID, int _shardCount) {
@@ -363,7 +366,10 @@ namespace SleepyDiscord {
 				sessionID = readyData.sessionID;
 				bot = readyData.user.bot;
 				onReady(d);
+				ready_mtx.lock();
 				ready = true;
+				ready_mtx.unlock();
+				ready_cv.notify_all();
 				} break;
 			case hash("RESUMED"                    ): onResumed           (d); break;
 			case hash("GUILD_CREATE"               ): {
